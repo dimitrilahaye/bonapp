@@ -118,6 +118,7 @@ export function openRecipeModal ({
   function close () {
     overlay.remove()
     document.removeEventListener('keydown', onKeydown)
+    document.querySelectorAll('.autocomplete__list').forEach(l => l.remove())
   }
 
   /** @param {KeyboardEvent} e */

@@ -60,7 +60,8 @@ export function createAutocomplete ({ placeholder, suggestions, value = '', onSu
 
   wrapper.appendChild(input)
   wrapper.appendChild(clearBtn)
-  wrapper.appendChild(list)
+  // La liste est attachée à body pour ne jamais être contrainte par la modal
+  document.body.appendChild(list)
 
   /* ── Logique de filtrage ───────────────────────────────────────────────── */
 
@@ -68,8 +69,10 @@ export function createAutocomplete ({ placeholder, suggestions, value = '', onSu
    * Filtre les suggestions et met à jour la liste déroulante.
    * @param {string} query
    */
+  const normalize = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
   function updateList (query) {
-    const q = query.trim().toLowerCase()
+    const q = normalize(query.trim())
     list.innerHTML = ''
 
     if (!q || !suggestions.length) {
@@ -78,7 +81,7 @@ export function createAutocomplete ({ placeholder, suggestions, value = '', onSu
     }
 
     const filtered = suggestions
-      .filter(s => s.toLowerCase().includes(q))
+      .filter(s => normalize(s).includes(q))
       .slice(0, 7)
 
     if (!filtered.length) {
@@ -141,13 +144,16 @@ export function createAutocomplete ({ placeholder, suggestions, value = '', onSu
     const spaceBelow = window.innerHeight - rect.bottom - 8
     const spaceAbove = rect.top - 8
 
+    list.style.left = rect.left + 'px'
+    list.style.width = rect.width + 'px'
+
     if (spaceBelow >= 120 || spaceBelow >= spaceAbove) {
-      list.style.top = 'calc(100% + 4px)'
+      list.style.top = (rect.bottom + 4) + 'px'
       list.style.bottom = ''
       list.style.maxHeight = Math.max(80, spaceBelow) + 'px'
     } else {
       list.style.top = ''
-      list.style.bottom = 'calc(100% + 4px)'
+      list.style.bottom = (window.innerHeight - rect.top + 4) + 'px'
       list.style.maxHeight = Math.max(80, spaceAbove) + 'px'
     }
   }

@@ -7,6 +7,9 @@
 /** @type {string} Clé de stockage principale */
 const KEY = 'bonapp_menus'
 
+/** @type {string} Clé de l'archive de noms de recettes */
+const RECIPES_KEY = 'bonapp_recipes'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 /**
@@ -69,19 +72,44 @@ export function getMenuByStartDate (startDate) {
 }
 
 /**
- * Retourne tous les noms de recettes déjà utilisés, dédupliqués et triés.
- * Utilisé pour l'autocomplétion.
+ * Retourne tous les noms de recettes connus, triés.
+ * Si bonapp_recipes n'existe pas encore, on le peuple depuis les menus actuels
+ * (migration one-shot pour la rétro-compatibilité).
  * @returns {string[]}
  */
 export function getAllRecipeNames () {
-  const names = new Set()
-  for (const menu of getAllMenus()) {
-    for (const day of menu.days) {
-      if (day.midi?.recipe) names.add(day.midi.recipe)
-      if (day.soir?.recipe) names.add(day.soir.recipe)
+  if (localStorage.getItem(RECIPES_KEY) === null) {
+    const names = new Set()
+    for (const menu of getAllMenus()) {
+      for (const day of menu.days) {
+        if (day.midi?.recipe) names.add(day.midi.recipe)
+        if (day.soir?.recipe) names.add(day.soir.recipe)
+      }
     }
+    localStorage.setItem(RECIPES_KEY, JSON.stringify(Array.from(names)))
   }
-  return Array.from(names).sort((a, b) => a.localeCompare(b, 'fr'))
+  try {
+    const archived = JSON.parse(localStorage.getItem(RECIPES_KEY) ?? '[]')
+    return archived.sort((a, b) => a.localeCompare(b, 'fr'))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Persiste les noms de recettes d'un menu dans l'archive.
+ * Appelé à chaque saveMenu pour que les recettes survivent à la suppression.
+ * @param {WeekMenu} menu
+ */
+function archiveRecipeNames (menu) {
+  try {
+    const existing = new Set(JSON.parse(localStorage.getItem(RECIPES_KEY) ?? '[]'))
+    for (const day of menu.days) {
+      if (day.midi?.recipe) existing.add(day.midi.recipe)
+      if (day.soir?.recipe) existing.add(day.soir.recipe)
+    }
+    localStorage.setItem(RECIPES_KEY, JSON.stringify(Array.from(existing)))
+  } catch {}
 }
 
 /**
@@ -109,6 +137,7 @@ export function saveMenu (menu) {
     all.unshift(menu)
   }
   localStorage.setItem(KEY, JSON.stringify(all))
+  archiveRecipeNames(menu)
 }
 
 /**
