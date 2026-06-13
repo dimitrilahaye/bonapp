@@ -319,6 +319,14 @@ body {
   font-size: 13px;
   color: var(--primary-dark);
   font-weight: 600;
+  flex: 1;
+}
+
+.history-toolbar__toggle-all {
+  font-size: 12px;
+  padding: 5px 10px;
+  color: var(--primary-dark);
+  border: 1px solid #C5DCC3;
 }
 
 .history-list {

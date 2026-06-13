@@ -24,6 +24,12 @@ export function renderHistory (container) {
   header.appendChild(title)
   container.appendChild(header)
 
+  // ── Bouton tout sélectionner (toujours visible s'il y a des menus) ─────────
+
+  const toggleAllBtn = document.createElement('button')
+  toggleAllBtn.className = 'btn btn--ghost history-toolbar__toggle-all'
+  toggleAllBtn.textContent = 'Tout sélectionner'
+
   // ── État vide ─────────────────────────────────────────────────────────────
 
   if (!menus.length) {
@@ -42,6 +48,20 @@ export function renderHistory (container) {
 
   /** @type {Set<string>} */
   const selected = new Set()
+  /** @type {HTMLInputElement[]} */
+  const checkboxes = []
+
+  toggleAllBtn.addEventListener('click', () => {
+    const allChecked = selected.size === menus.length
+    checkboxes.forEach(cb => {
+      cb.checked = !allChecked
+      if (!allChecked) selected.add(cb.dataset.id)
+      else selected.delete(cb.dataset.id)
+    })
+    syncToolbar()
+  })
+
+  header.appendChild(toggleAllBtn)
 
   const toolbar = document.createElement('div')
   toolbar.className = 'history-toolbar'
@@ -67,6 +87,8 @@ export function renderHistory (container) {
     toolbar.hidden = selected.size === 0
     selLabel.textContent =
       `${selected.size} menu${selected.size > 1 ? 's' : ''} sélectionné${selected.size > 1 ? 's' : ''}`
+    toggleAllBtn.textContent =
+      selected.size === menus.length ? 'Désélectionner tout' : 'Tout sélectionner'
   }
 
   delSelBtn.addEventListener('click', () => {
@@ -90,12 +112,14 @@ export function renderHistory (container) {
     const checkbox = document.createElement('input')
     checkbox.type = 'checkbox'
     checkbox.className = 'history-item__checkbox'
+    checkbox.dataset.id = menu.id
     checkbox.setAttribute('aria-label', `Sélectionner ${fmtWeekLabel(menu.startDate, menu.endDate)}`)
     checkbox.addEventListener('change', () => {
       if (checkbox.checked) selected.add(menu.id)
       else selected.delete(menu.id)
       syncToolbar()
     })
+    checkboxes.push(checkbox)
 
     const infoBtn = document.createElement('button')
     infoBtn.className = 'history-item__info'
