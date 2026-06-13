@@ -156,8 +156,6 @@ export function createAutocomplete ({ placeholder, suggestions, value = '', onSu
     }
   })
 
-  input.addEventListener('focus', () => updateList(input.value))
-
   input.addEventListener('blur', () => {
     // Délai pour laisser le mousedown sur un item s'exécuter avant de fermer
     setTimeout(() => { list.hidden = true }, 160)
