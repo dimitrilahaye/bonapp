@@ -1,5 +1,6 @@
 import { deleteMenus } from '../storage.js'
 import { navigate } from '../router.js'
+import { showToast } from './toast.js'
 
 const PDF_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -38,6 +39,7 @@ export function makeFabBar (id, redirectAfterDelete = '/history') {
   deleteBtn.addEventListener('click', () => {
     if (!confirm('Supprimer ce menu définitivement ?')) return
     deleteMenus([id])
+    showToast('Menu supprimé')
     navigate(redirectAfterDelete)
   })
 

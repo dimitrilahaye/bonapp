@@ -2,6 +2,7 @@ import { getAllMenus, deleteMenus, countMeals } from '../storage.js'
 import { fmtWeekLabel } from '../utils.js'
 import { navigate } from '../router.js'
 import { setActiveNav } from '../components/navbar.js'
+import { showToast } from '../components/toast.js'
 
 /**
  * Affiche la liste de tous les menus enregistrés.
@@ -93,7 +94,9 @@ export function renderHistory (container) {
 
   delSelBtn.addEventListener('click', () => {
     if (!confirm(`Supprimer ${selected.size} menu(s) ?`)) return
+    const count = selected.size
     deleteMenus(Array.from(selected))
+    showToast(`${count} menu${count > 1 ? 's' : ''} supprimé${count > 1 ? 's' : ''}`)
     renderHistory(container)
   })
 
