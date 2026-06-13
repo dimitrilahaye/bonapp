@@ -6,6 +6,9 @@
 /** @type {string[]} Noms des jours (dim=0 … sam=6) */
 const DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
 
+/** @type {string[]} Abréviations des jours pour l'impression */
+const DAYS_ABBREV = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.']
+
 /** @type {string[]} Noms des mois (jan=0 … déc=11) */
 const MONTHS = [
   'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -113,6 +116,16 @@ export function fromISO (iso) {
 export function fmtShort (date) {
   const d = typeof date === 'string' ? fromISO(date) : date
   return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`
+}
+
+/**
+ * Formate une date avec le jour abrégé : "Lun. 10 juin" (pour l'impression).
+ * @param {string|Date} date
+ * @returns {string}
+ */
+export function fmtShortAbbrev (date) {
+  const d = typeof date === 'string' ? fromISO(date) : date
+  return `${DAYS_ABBREV[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`
 }
 
 /**

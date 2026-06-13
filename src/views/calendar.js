@@ -1,22 +1,17 @@
-import { getAllMenus, saveMenu, getAllRecipeNames } from '../storage.js'
-import { toISO, fmtShort, fmtWeekLabel } from '../utils.js'
-import { openRecipeModal } from '../components/modal.js'
+import { getAllMenus, saveMenu } from '../storage.js'
+import { fmtWeekLabel } from '../utils.js'
 import { setActiveNav } from '../components/navbar.js'
+import { buildDayGrid, createMoveState } from '../components/day-slots.js'
+import { makeFabBar } from '../components/fab-bar.js'
 
-/** Index du menu affiché (0 = le plus récent). */
 let currentMenuIdx = 0
+let state = createMoveState()
 
-/**
- * Affiche la vue Semaine : dernier menu enregistré avec navigation entre menus.
- * @param {HTMLElement} container
- */
 export function renderCalendar (container) {
   setActiveNav('/calendar')
   container.innerHTML = ''
 
   const menus = getAllMenus()
-
-  // ── En-tête ───────────────────────────────────────────────────────────────
 
   const header = document.createElement('div')
   header.className = 'view-header'
@@ -43,6 +38,9 @@ export function renderCalendar (container) {
   if (currentMenuIdx >= menus.length) currentMenuIdx = 0
   const menu = menus[currentMenuIdx]
 
+  // Réinitialise le move state si on change de menu
+  state = createMoveState()
+
   const prevBtn = document.createElement('button')
   prevBtn.className = 'btn btn--icon'
   prevBtn.setAttribute('aria-label', 'Menu précédent')
@@ -66,70 +64,20 @@ export function renderCalendar (container) {
   header.appendChild(nextBtn)
   container.appendChild(header)
 
-  // ── Grille des jours (éditable, auto-sauvegarde) ──────────────────────────
+  const gridContainer = document.createElement('div')
+  container.appendChild(gridContainer)
 
-  const grid = document.createElement('div')
-  grid.className = 'calendar'
-  const todayISO = toISO(new Date())
+  function rerender () {
+    saveMenu(menu)
+    gridContainer.innerHTML = ''
+    gridContainer.appendChild(buildDayGrid({ menu, state, dragScope: gridContainer, rerender }))
+  }
 
-  menu.days.forEach((day, dayIdx) => {
-    const dayEl = document.createElement('div')
-    dayEl.className = 'calendar__day'
+  gridContainer.appendChild(buildDayGrid({ menu, state, dragScope: gridContainer, rerender }))
 
-    const dateEl = document.createElement('div')
-    dateEl.className = `calendar__date${day.date === todayISO ? ' calendar__date--today' : ''}`
-    dateEl.textContent = fmtShort(day.date)
+  container.appendChild(makeFabBar(menu.id, '/calendar'))
 
-    const slotsEl = document.createElement('div')
-    slotsEl.className = 'calendar__slots'
-
-    ;/** @type {Array<{key: 'midi'|'soir', icon: string, label: string}>} */([
-      { key: 'midi', icon: '☀️', label: 'Midi' },
-      { key: 'soir', icon: '🌙', label: 'Soir' }
-    ]).forEach(({ key, icon, label }) => {
-      const meal = day[key]
-      const slot = document.createElement('div')
-      slot.className = `calendar__slot${meal ? ' calendar__slot--filled' : ''}`
-      slot.setAttribute('role', 'button')
-      slot.setAttribute('tabindex', '0')
-
-      slot.innerHTML = `
-        <span class="calendar__slot-icon">${icon}</span>
-        <span class="calendar__slot-label">${label}</span>
-        <span class="calendar__slot-recipe">${meal?.recipe ?? '+ Ajouter'}</span>
-      `
-
-      function openSlotModal () {
-        openRecipeModal({
-          title: `${fmtShort(day.date)} — ${label}`,
-          initialValue: meal?.recipe ?? '',
-          suggestions: getAllRecipeNames(),
-          showDelete: !!meal,
-          onDelete: () => {
-            menu.days[dayIdx][key] = null
-            saveMenu(menu)
-            renderCalendar(container)
-          },
-          onConfirm: value => {
-            menu.days[dayIdx][key] = { recipe: value }
-            saveMenu(menu)
-            renderCalendar(container)
-          }
-        })
-      }
-
-      slot.addEventListener('click', openSlotModal)
-      slot.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSlotModal() }
-      })
-
-      slotsEl.appendChild(slot)
-    })
-
-    dayEl.appendChild(dateEl)
-    dayEl.appendChild(slotsEl)
-    grid.appendChild(dayEl)
-  })
-
-  container.appendChild(grid)
+  const spacer = document.createElement('div')
+  spacer.style.height = '62px'
+  container.appendChild(spacer)
 }

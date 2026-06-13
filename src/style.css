@@ -34,6 +34,7 @@
 html, body {
   height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   background: var(--bg);
 }
 
@@ -59,7 +60,8 @@ body {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 16px calc(var(--navbar-h) + 24px);
+  overscroll-behavior-y: contain;
+  padding: env(safe-area-inset-top, 0) 16px calc(var(--navbar-h) + env(safe-area-inset-bottom, 0) + 24px) 16px;
 }
 
 /* ── Navbar ────────────────────────────────────────────────────────────── */
@@ -376,14 +378,15 @@ body {
 
 .date-picker {
   display: flex;
-  gap: 12px;
+  justify-content: center;
+  gap: 16px;
   margin-bottom: 20px;
 }
 
 .date-picker__group {
-  flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 5px;
 }
 
@@ -396,12 +399,12 @@ body {
 }
 
 .date-picker__input {
-  width: 100%;
-  padding: 10px 12px;
+  width: 136px;
+  padding: 8px 10px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 13px;
   background: var(--surface);
   color: var(--text);
   outline: none;
@@ -410,19 +413,37 @@ body {
 
 .date-picker__input:focus { border-color: var(--primary); }
 
-/* ── Drag & drop ────────────────────────────────────────────────────────── */
+/* ── Tap-to-move ────────────────────────────────────────────────────────── */
 
-.calendar__slot[draggable="true"] { cursor: grab; }
-.calendar__slot[draggable="true"]:active { cursor: grabbing; }
-
-.calendar__slot.is-dragging {
-  opacity: .4;
-}
-
-.calendar__slot.drop-target {
-  border: 2px dashed var(--primary) !important;
+.calendar__slot--moving {
+  border: 2px solid var(--primary) !important;
   background: var(--primary-light) !important;
+  box-shadow: 0 0 0 3px rgba(45,90,39,.12);
 }
+
+.calendar__slot--move-target {
+  border-style: dashed !important;
+  border-color: var(--primary) !important;
+  opacity: .85;
+}
+
+.slot-grip {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color .15s, background .15s;
+}
+
+.slot-grip svg { width: 16px; height: 16px; }
+.slot-grip:hover { color: var(--primary); background: var(--primary-light); }
+.slot-grip--active { color: var(--primary); }
 
 /* ── Détail du menu — boutons FAB sticky ────────────────────────────────── */
 
@@ -440,7 +461,7 @@ body {
 
 .detail-fab-bar--bottom {
   position: fixed;
-  bottom: var(--navbar-h);
+  bottom: calc(var(--navbar-h) + env(safe-area-inset-bottom, 0));
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -592,6 +613,36 @@ body {
   outline: none;
 }
 
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  bottom: calc(var(--navbar-h) + env(safe-area-inset-bottom, 0) + 16px);
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--primary-dark);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 16px;
+  border-radius: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 300;
+  opacity: 0;
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast--hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+}
+
 /* ── Empty state ────────────────────────────────────────────────────────── */
 
 .empty-state {
@@ -621,7 +672,7 @@ body {
 
 .create-save-toolbar {
   position: fixed;
-  bottom: var(--navbar-h);
+  bottom: calc(var(--navbar-h) + env(safe-area-inset-bottom, 0));
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -670,50 +721,97 @@ body {
     text-align: left;
   }
 
+  /* Tableau : une ligne par jour, Midi et Soir en colonnes */
+  /* Une ligne par jour, Midi et Soir côte à côte, avec du vrai espace */
   .calendar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 8pt;
   }
 
   .calendar__day {
-    padding: 8pt;
-    border: 1pt solid #ddd;
+    display: grid;
+    grid-template-columns: 90pt 1fr;
+    border: 1pt solid #d0d0d0;
+    border-radius: 3pt;
+    overflow: hidden;
     box-shadow: none;
+    padding: 0;
     break-inside: avoid;
   }
 
+  .calendar__day:nth-child(even) {
+    background: #f4f2ed !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .calendar__date {
-    font-size: 9pt;
-    color: #333;
-    border-bottom: 1pt solid #eee;
-    padding-bottom: 4pt;
-    margin-bottom: 6pt;
+    font-size: 0; /* masque le texte long */
+    font-weight: 700;
+    color: #2D5A27;
+    padding: 10pt 9pt;
+    margin-bottom: 0;
+    border-right: 1pt solid #d0d0d0;
+    display: flex;
+    align-items: center;
+  }
+
+  .calendar__date::before {
+    content: attr(data-abbrev);
+    font-size: 8.5pt;
+    font-weight: 700;
+  }
+
+  .calendar__date--today,
+  .calendar__date--today::before { color: #E8914A; }
+
+  .calendar__slots {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 28pt;
+    padding: 10pt 12pt;
+    align-items: center;
   }
 
   .calendar__slot {
-    border: none;
-    background: transparent;
-    padding: 3pt 0;
-    gap: 6pt;
+    border: 1pt solid #d8d3cc;
+    background: #ede9e3 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    border-radius: 3pt;
+    padding: 6pt 8pt;
+    gap: 5pt;
     min-height: unset;
   }
 
+  .calendar__slot--filled {
+    border-color: #e8c9a8;
+    background: #fef0e6 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .calendar__slot-icon { font-size: 9pt; }
+
   .calendar__slot-label {
-    font-size: 8pt;
-    color: #666;
-    width: 28pt;
+    font-size: 7pt;
+    color: #999;
+    width: 22pt;
+    text-transform: uppercase;
   }
 
   .calendar__slot-recipe {
-    font-size: 10pt;
+    font-size: 9.5pt;
     color: #111;
   }
 
   .calendar__slot:not(.calendar__slot--filled) .calendar__slot-recipe {
-    color: #aaa;
+    color: #bbb;
     font-style: italic;
   }
+
+  .slot-grip { display: none !important; }
 
   /* En-tête d'impression avec le titre de l'app */
   .print-header {
