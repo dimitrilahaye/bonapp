@@ -583,7 +583,6 @@ body {
 
 .autocomplete__list {
   position: absolute;
-  top: calc(100% + 4px);
   left: 0;
   right: 0;
   background: var(--surface);
@@ -592,7 +591,9 @@ body {
   list-style: none;
   z-index: 10;
   box-shadow: 0 6px 20px rgba(0,0,0,.12);
-  overflow: hidden;
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .autocomplete__item {

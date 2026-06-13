@@ -115,6 +115,23 @@ export function createAutocomplete ({ placeholder, suggestions, value = '', onSu
     })
 
     list.hidden = false
+    positionList()
+  }
+
+  function positionList () {
+    const rect = wrapper.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom - 8
+    const spaceAbove = rect.top - 8
+
+    if (spaceBelow >= 120 || spaceBelow >= spaceAbove) {
+      list.style.top = 'calc(100% + 4px)'
+      list.style.bottom = ''
+      list.style.maxHeight = Math.max(80, spaceBelow) + 'px'
+    } else {
+      list.style.top = ''
+      list.style.bottom = 'calc(100% + 4px)'
+      list.style.maxHeight = Math.max(80, spaceAbove) + 'px'
+    }
   }
 
   /* ── Événements du champ ───────────────────────────────────────────────── */
