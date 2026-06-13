@@ -34,6 +34,23 @@ export function createAutocomplete ({ placeholder, suggestions, value = '', onSu
   input.setAttribute('aria-autocomplete', 'list')
   input.setAttribute('aria-haspopup', 'listbox')
 
+  /* ── Bouton clear ──────────────────────────────────────────────────────── */
+
+  const clearBtn = document.createElement('button')
+  clearBtn.type = 'button'
+  clearBtn.className = 'autocomplete__clear'
+  clearBtn.setAttribute('aria-label', 'Effacer')
+  clearBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+  clearBtn.hidden = !value
+
+  clearBtn.addEventListener('mousedown', e => {
+    e.preventDefault()
+    input.value = ''
+    clearBtn.hidden = true
+    list.hidden = true
+    input.focus()
+  })
+
   /* ── Liste de suggestions ──────────────────────────────────────────────── */
 
   const list = document.createElement('ul')
@@ -42,6 +59,7 @@ export function createAutocomplete ({ placeholder, suggestions, value = '', onSu
   list.hidden = true
 
   wrapper.appendChild(input)
+  wrapper.appendChild(clearBtn)
   wrapper.appendChild(list)
 
   /* ── Logique de filtrage ───────────────────────────────────────────────── */
@@ -136,7 +154,10 @@ export function createAutocomplete ({ placeholder, suggestions, value = '', onSu
 
   /* ── Événements du champ ───────────────────────────────────────────────── */
 
-  input.addEventListener('input', () => updateList(input.value))
+  input.addEventListener('input', () => {
+    updateList(input.value)
+    clearBtn.hidden = !input.value
+  })
 
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter') {

@@ -568,7 +568,7 @@ body {
 
 .autocomplete__input {
   width: 100%;
-  padding: 13px 14px;
+  padding: 13px 40px 13px 14px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   font-family: var(--font);
@@ -580,6 +580,28 @@ body {
 }
 
 .autocomplete__input:focus { border-color: var(--primary); }
+
+.autocomplete__clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background .12s, color .12s;
+}
+
+.autocomplete__clear:hover { background: var(--border); color: var(--text); }
+.autocomplete__clear svg { width: 14px; height: 14px; }
 
 .autocomplete__list {
   position: absolute;
