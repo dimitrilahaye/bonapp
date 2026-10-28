@@ -1,6 +1,7 @@
 import { deleteMenus } from '../storage.js'
 import { navigate } from '../router.js'
 import { showToast } from './toast.js'
+import { exportMenuPdf } from '../pdf.js'
 
 const PDF_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -30,7 +31,7 @@ export function makeFabBar (id, redirectAfterDelete = '/history') {
   pdfBtn.className = 'btn--fab btn--fab-pdf'
   pdfBtn.setAttribute('aria-label', 'Partager en PDF')
   pdfBtn.innerHTML = PDF_ICON
-  pdfBtn.addEventListener('click', () => window.print())
+  pdfBtn.addEventListener('click', () => exportMenuPdf(id))
 
   const deleteBtn = document.createElement('button')
   deleteBtn.className = 'btn--fab btn--fab-delete'
